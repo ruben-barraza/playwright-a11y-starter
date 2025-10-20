@@ -1,0 +1,35 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Playwright artifacts
+playwright-report/
+test-results/
+*.zip
+*.mp4
+*.webm
+*.png
+*.trace.zip
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build outputs (si en el futuro compilas TS)
+dist/
+out/
