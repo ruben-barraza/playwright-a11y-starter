@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      # 1) Descarga tu código en la máquina del workflow
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 2) Instala Node.js y habilita caché de npm (acelera builds)
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # 3) Instala dependencias del proyecto
+      - name: Install deps
+        run: npm ci
+
+      # 4) Instala navegadores de Playwright (Chromium/Firefox/WebKit)
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      # 5) Corre E2E (puedes dejarlo como "npx playwright test" para todo)
+      - name: Run E2E tests
+        env:
+          BASE_URL: https://www.saucedemo.com
+          CI: true
+        run: npx playwright test tests/e2e --project=chromium
+
+      # 6) Corre A11y
+      - name: Run A11y tests (axe)
+        env:
+          BASE_URL: https://www.saucedemo.com
+          CI: true
+        run: npm run test:a11y -- --project=chromium
+
+      # 7) Sube el reporte HTML como artefacto descargable
+      - name: Upload HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report
+          retention-days: 7
+
+      # 8) Sube videos, screenshots, traces
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-artifacts
+          path: test-results/.artifacts
+          retention-days: 7
+
+      # 9) Sube JUnit XML (para integraciones)
+      - name: Upload JUnit XML
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-xml
+          path: test-results/junit/results.xml
+          retention-days: 7
+
+      # 10) Sube JSON de Axe (evidencia A11y)
+      - name: Upload Axe JSON
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: axe-json
+          path: test-results/a11y
+          retention-days: 7
